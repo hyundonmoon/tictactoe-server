@@ -1,6 +1,20 @@
-export interface ServerToClientEvents {}
+import { CreateRoomRequestParams } from './room.model';
 
-export interface ClientToServerEvents {}
+export interface ServerToClientEvents {
+  roomPending: ({ roomId }: { roomId: string }) => void;
+  roomJoined: ({ roomId }: { roomId: string }) => void;
+  passwordRequired: ({ roomId }: { roomId: string }) => void;
+  passwordWrong: ({ roomId }: { roomId: string }) => void;
+  roomFull: () => void;
+  roomNotFound: () => void;
+  gameStart: () => void;
+}
+
+export interface ClientToServerEvents {
+  createRoom: (params: CreateRoomRequestParams) => void;
+  joinRoom: (roomId: string) => void;
+  joinRoomWithPassword: (roomId: string, password: string) => void;
+}
 
 export interface InterServerEvents {}
 
