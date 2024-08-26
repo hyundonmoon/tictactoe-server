@@ -8,12 +8,14 @@ export interface ServerToClientEvents {
   roomFull: () => void;
   roomNotFound: () => void;
   gameStart: () => void;
+  playerLeft: ({ playerId }: { playerId: string }) => void;
 }
 
 export interface ClientToServerEvents {
   createRoom: (params: CreateRoomRequestParams) => void;
   joinRoom: (roomId: string) => void;
   joinRoomWithPassword: (roomId: string, password: string) => void;
+  leaveRoom: (roomId: string) => void;
 }
 
 export interface InterServerEvents {}

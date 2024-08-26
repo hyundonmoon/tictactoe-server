@@ -1,4 +1,4 @@
-import express, { Request } from 'express';
+import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import {
@@ -14,9 +14,11 @@ import {
   getActiveRoom,
   getActiveRoomsList,
   getPendingRoom,
+  removeUserFromRoom,
 } from './db/rooms';
 import createRoom from './utils/generateRoom';
 import { MAX_PLAYERS } from './constants/gameplay.constants';
+import cors from 'cors';
 
 const app = express();
 const server = http.createServer(app);
@@ -25,9 +27,15 @@ const io = new Server<
   ServerToClientEvents,
   InterServerEvents,
   SocketData
->(server);
+>(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+  },
+});
 
 const PORT = process.env.PORT || 3000;
+
+app.use(cors());
 
 app.get('/rooms', (req, res) => {
   const filter = req.query.filter as 'waiting' | 'all';
@@ -57,6 +65,7 @@ io.on('connection', (socket) => {
 
     if (pendingRoom) {
       if (pendingRoom.owner === socket.id) {
+        console.log('Owner joining');
         clearTimeout(pendingRoom.timeout);
         pendingRoom.players.push(socket.id);
         deletePendingRoom(pendingRoom.id);
@@ -64,7 +73,7 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         socket.emit('roomJoined', { roomId });
       } else {
-        // if a room is pending and the user who asks the join isn't the user, they shouldn't be able to join
+        // if a room is pending and the user who asks to join isn't the owner, they shouldn't be able to join
         socket.emit('roomNotFound');
       }
 
@@ -74,12 +83,12 @@ io.on('connection', (socket) => {
     const activeRoom = getActiveRoom(roomId);
 
     if (activeRoom) {
-      if (activeRoom.players.length > MAX_PLAYERS) {
+      if (activeRoom.players.length >= MAX_PLAYERS) {
         socket.emit('roomFull');
         return;
       }
 
-      if (activeRoom.password && activeRoom.owner !== socket.id) {
+      if (activeRoom.password) {
         socket.emit('passwordRequired', { roomId });
         return;
       }
@@ -104,9 +113,10 @@ io.on('connection', (socket) => {
     if (activeRoom) {
       if (password !== activeRoom.password) {
         socket.emit('passwordWrong', { roomId });
+        return;
       }
 
-      if (activeRoom.players.length > MAX_PLAYERS) {
+      if (activeRoom.players.length >= MAX_PLAYERS) {
         socket.emit('roomFull');
         return;
       }
@@ -125,13 +135,20 @@ io.on('connection', (socket) => {
     socket.emit('roomNotFound');
   });
 
+  socket.on('leaveRoom', (roomId: string) => {
+    removeUserFromRoom(io, socket, roomId);
+  });
+
   socket.on('disconnecting', () => {
-    console.log(socket.rooms); // TODO: handle removing active rooms from memory
+    if (socket.rooms.size) {
+      Array.from(socket.rooms).forEach((roomId) => {
+        removeUserFromRoom(io, socket, roomId);
+      });
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
-    console.log(socket.rooms);
+    console.log('user disconnected', socket.rooms);
   });
 });
 
