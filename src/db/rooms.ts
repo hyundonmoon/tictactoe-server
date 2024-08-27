@@ -6,6 +6,7 @@ import {
   ServerToClientEvents,
   SocketData,
 } from '../models/socket.model';
+import { ROOM_SERVER_TO_CLIENT } from '../constants/socket.constants';
 
 // rooms that have been created but not joined
 const PendingRooms: Map<string, Room> = new Map();
@@ -103,7 +104,9 @@ export function removeUserFromRoom(
     updateActiveRoom(activeRoom, {
       players: activeRoom.players.filter((id) => id !== socket.id),
     });
-    io.to(roomId).emit('playerLeft', { playerId: socket.id });
+    io.to(roomId).emit(ROOM_SERVER_TO_CLIENT.PLAYER_LEFT, {
+      playerId: socket.id,
+    });
   }
 
   socket.leave(roomId);

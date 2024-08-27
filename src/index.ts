@@ -19,6 +19,10 @@ import {
 import createRoom from './utils/generateRoom';
 import { MAX_PLAYERS } from './constants/gameplay.constants';
 import cors from 'cors';
+import {
+  ROOM_CLIENT_TO_SERVER,
+  ROOM_SERVER_TO_CLIENT,
+} from './constants/socket.constants';
 
 const app = express();
 const server = http.createServer(app);
@@ -46,7 +50,7 @@ app.get('/rooms', (req, res) => {
 io.on('connection', (socket) => {
   console.log('a user connected');
 
-  socket.on('createRoom', ({ name, password, isPrivate }) => {
+  socket.on(ROOM_CLIENT_TO_SERVER.CREATE, ({ name, password, isPrivate }) => {
     const newRoom = createRoom(socket.id, name, password ?? '', isPrivate);
     newRoom.timeout = setTimeout(
       () => {
@@ -56,10 +60,10 @@ io.on('connection', (socket) => {
     );
     addPendingRoom(newRoom);
 
-    socket.emit('roomPending', { roomId: newRoom.id });
+    socket.emit(ROOM_SERVER_TO_CLIENT.PENDING, { roomId: newRoom.id });
   });
 
-  socket.on('joinRoom', (roomId: string) => {
+  socket.on(ROOM_CLIENT_TO_SERVER.JOIN, (roomId: string) => {
     // TODO: I feel like there's room for improvement here
     const pendingRoom = getPendingRoom(roomId);
 
@@ -71,10 +75,10 @@ io.on('connection', (socket) => {
         deletePendingRoom(pendingRoom.id);
         addActiveRoom(pendingRoom);
         socket.join(roomId);
-        socket.emit('roomJoined', { roomId });
+        socket.emit(ROOM_SERVER_TO_CLIENT.JOINED, { roomId });
       } else {
         // if a room is pending and the user who asks to join isn't the owner, they shouldn't be able to join
-        socket.emit('roomNotFound');
+        socket.emit(ROOM_SERVER_TO_CLIENT.NOT_FOUND);
       }
 
       return;
@@ -84,18 +88,18 @@ io.on('connection', (socket) => {
 
     if (activeRoom) {
       if (activeRoom.players.length >= MAX_PLAYERS) {
-        socket.emit('roomFull');
+        socket.emit(ROOM_SERVER_TO_CLIENT.FULL);
         return;
       }
 
       if (activeRoom.password) {
-        socket.emit('passwordRequired', { roomId });
+        socket.emit(ROOM_SERVER_TO_CLIENT.PASSWORD_REQUIRED, { roomId });
         return;
       }
 
       activeRoom.players.push(socket.id);
       socket.join(roomId);
-      socket.emit('roomJoined', { roomId });
+      socket.emit(ROOM_SERVER_TO_CLIENT.JOINED, { roomId });
 
       if (activeRoom.players.length === MAX_PLAYERS) {
         socket.emit('gameStart');
@@ -104,26 +108,26 @@ io.on('connection', (socket) => {
       return;
     }
 
-    socket.emit('roomNotFound');
+    socket.emit(ROOM_SERVER_TO_CLIENT.NOT_FOUND);
   });
 
-  socket.on('joinRoomWithPassword', (roomId, password) => {
+  socket.on(ROOM_CLIENT_TO_SERVER.JOIN_PASSWORD, (roomId, password) => {
     const activeRoom = getActiveRoom(roomId);
 
     if (activeRoom) {
       if (password !== activeRoom.password) {
-        socket.emit('passwordWrong', { roomId });
+        socket.emit(ROOM_SERVER_TO_CLIENT.WRONG_PASSWORD, { roomId });
         return;
       }
 
       if (activeRoom.players.length >= MAX_PLAYERS) {
-        socket.emit('roomFull');
+        socket.emit(ROOM_SERVER_TO_CLIENT.FULL);
         return;
       }
 
       activeRoom.players.push(socket.id);
       socket.join(roomId);
-      socket.emit('roomJoined', { roomId });
+      socket.emit(ROOM_SERVER_TO_CLIENT.JOINED, { roomId });
 
       if (activeRoom.players.length === MAX_PLAYERS) {
         socket.emit('gameStart');
@@ -132,10 +136,10 @@ io.on('connection', (socket) => {
       return;
     }
 
-    socket.emit('roomNotFound');
+    socket.emit(ROOM_SERVER_TO_CLIENT.NOT_FOUND);
   });
 
-  socket.on('leaveRoom', (roomId: string) => {
+  socket.on(ROOM_CLIENT_TO_SERVER.LEAVE, (roomId: string) => {
     removeUserFromRoom(io, socket, roomId);
   });
 
