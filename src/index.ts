@@ -1,12 +1,15 @@
+import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import { REQUIRED_PLAYERS } from './constants/gameplay.constants';
 import {
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData,
-} from './models/socket.model';
+  GAME_CLIENT_TO_SERVER,
+  GAME_SERVER_TO_CLIENT,
+  ROOM_CLIENT_TO_SERVER,
+  ROOM_SERVER_TO_CLIENT,
+} from './constants/socket.constants';
+import { ActiveGames } from './db/games';
 import {
   addActiveRoom,
   addPendingRoom,
@@ -16,13 +19,15 @@ import {
   getPendingRoom,
   removeUserFromRoom,
 } from './db/rooms';
-import createRoom from './utils/generateRoom';
-import { MAX_PLAYERS } from './constants/gameplay.constants';
-import cors from 'cors';
+import handleDisconnect from './handlers/handleDisconnect';
 import {
-  ROOM_CLIENT_TO_SERVER,
-  ROOM_SERVER_TO_CLIENT,
-} from './constants/socket.constants';
+  ClientToServerEvents,
+  InterServerEvents,
+  ServerToClientEvents,
+  SocketData,
+} from './models/socket.model';
+import Game from './utils/Game';
+import createRoom from './utils/generateRoom';
 
 const app = express();
 const server = http.createServer(app);
@@ -87,7 +92,7 @@ io.on('connection', (socket) => {
     const activeRoom = getActiveRoom(roomId);
 
     if (activeRoom) {
-      if (activeRoom.players.length >= MAX_PLAYERS) {
+      if (activeRoom.players.length >= REQUIRED_PLAYERS) {
         socket.emit(ROOM_SERVER_TO_CLIENT.FULL);
         return;
       }
@@ -100,10 +105,6 @@ io.on('connection', (socket) => {
       activeRoom.players.push(socket.id);
       socket.join(roomId);
       socket.emit(ROOM_SERVER_TO_CLIENT.JOINED, { roomId });
-
-      if (activeRoom.players.length === MAX_PLAYERS) {
-        socket.emit('gameStart');
-      }
 
       return;
     }
@@ -120,7 +121,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (activeRoom.players.length >= MAX_PLAYERS) {
+      if (activeRoom.players.length >= REQUIRED_PLAYERS) {
         socket.emit(ROOM_SERVER_TO_CLIENT.FULL);
         return;
       }
@@ -128,10 +129,6 @@ io.on('connection', (socket) => {
       activeRoom.players.push(socket.id);
       socket.join(roomId);
       socket.emit(ROOM_SERVER_TO_CLIENT.JOINED, { roomId });
-
-      if (activeRoom.players.length === MAX_PLAYERS) {
-        socket.emit('gameStart');
-      }
 
       return;
     }
@@ -143,12 +140,34 @@ io.on('connection', (socket) => {
     removeUserFromRoom(io, socket, roomId);
   });
 
-  socket.on('disconnecting', () => {
-    if (socket.rooms.size) {
-      Array.from(socket.rooms).forEach((roomId) => {
-        removeUserFromRoom(io, socket, roomId);
-      });
+  socket.on(
+    GAME_CLIENT_TO_SERVER.READY,
+    (roomId: string, playerId: string, playerName: string) => {
+      console.log('server ready event', { playerId, playerName });
+      const game = ActiveGames.get(roomId);
+
+      if (game) {
+        if (game.players.length < REQUIRED_PLAYERS) {
+          game.addPlayer(playerId, playerName);
+
+          if (game.isPlayable) {
+            game.startGame();
+
+            io.to(roomId).emit(GAME_SERVER_TO_CLIENT.START, {
+              players: game.players,
+              board: game.board,
+              currentTurnPlayerId: game.firstPlayerId,
+            });
+          }
+        }
+      } else {
+        ActiveGames.set(roomId, new Game(playerId, playerName));
+      }
     }
+  );
+
+  socket.on('disconnecting', () => {
+    handleDisconnect(io, socket);
   });
 
   socket.on('disconnect', () => {

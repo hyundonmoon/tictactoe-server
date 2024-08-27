@@ -1,1 +1,1 @@
-export const MAX_PLAYERS = 2;
+export const REQUIRED_PLAYERS = 2;

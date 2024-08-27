@@ -1,8 +1,12 @@
-import { CreateRoomRequestParams } from './room.model';
+import { Server } from 'socket.io';
 import {
+  GAME_CLIENT_TO_SERVER,
+  GAME_SERVER_TO_CLIENT,
   ROOM_CLIENT_TO_SERVER,
   ROOM_SERVER_TO_CLIENT,
 } from '../constants/socket.constants';
+import { BoardState, Player } from './game.model';
+import { CreateRoomRequestParams } from './room.model';
 
 export interface ServerToClientEvents {
   [ROOM_SERVER_TO_CLIENT.PENDING]: ({ roomId }: { roomId: string }) => void;
@@ -19,11 +23,15 @@ export interface ServerToClientEvents {
   }) => void;
   [ROOM_SERVER_TO_CLIENT.FULL]: () => void;
   [ROOM_SERVER_TO_CLIENT.NOT_FOUND]: () => void;
-  gameStart: () => void;
   [ROOM_SERVER_TO_CLIENT.PLAYER_LEFT]: ({
     playerId,
   }: {
     playerId: string;
+  }) => void;
+  [GAME_SERVER_TO_CLIENT.START]: (gameStartData: {
+    players: Player[];
+    board: BoardState;
+    currentTurnPlayerId: string;
   }) => void;
 }
 
@@ -35,8 +43,20 @@ export interface ClientToServerEvents {
     password: string
   ) => void;
   [ROOM_CLIENT_TO_SERVER.LEAVE]: (roomId: string) => void;
+  [GAME_CLIENT_TO_SERVER.READY]: (
+    roomId: string,
+    playerId: string,
+    playerName: string
+  ) => void;
 }
 
 export interface InterServerEvents {}
 
 export interface SocketData {}
+
+export type IOServer = Server<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData
+>;

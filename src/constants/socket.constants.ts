@@ -16,3 +16,15 @@ export const ROOM_CLIENT_TO_SERVER = {
   JOIN_PASSWORD: 'ROOM::JOIN_PASSWORD',
   LEAVE: 'ROOM::LEAVE',
 } as const;
+
+// GAME
+
+export const GAME_SERVER_TO_CLIENT = {
+  START: 'GAME::START',
+  OVER: 'GAME::OVER',
+} as const;
+
+export const GAME_CLIENT_TO_SERVER = {
+  READY: 'GAME::READY',
+  MAKE_MOVE: 'GAME::MAKE_MOVE',
+} as const;

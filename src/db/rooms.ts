@@ -1,12 +1,7 @@
-import { Server, Socket } from 'socket.io';
-import { Room, RoomResponse } from '../models/room.model';
-import {
-  ClientToServerEvents,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData,
-} from '../models/socket.model';
+import { Socket } from 'socket.io';
 import { ROOM_SERVER_TO_CLIENT } from '../constants/socket.constants';
+import { Room, RoomResponse } from '../models/room.model';
+import { IOServer } from '../models/socket.model';
 
 // rooms that have been created but not joined
 const PendingRooms: Map<string, Room> = new Map();
@@ -77,12 +72,7 @@ export function updateActiveRoom(
 }
 
 export function removeUserFromRoom(
-  io: Server<
-    ClientToServerEvents,
-    ServerToClientEvents,
-    InterServerEvents,
-    SocketData
-  >,
+  io: IOServer,
   socket: Socket,
   roomId: string
 ): void {
