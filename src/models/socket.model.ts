@@ -5,7 +5,7 @@ import {
   ROOM_CLIENT_TO_SERVER,
   ROOM_SERVER_TO_CLIENT,
 } from '../constants/socket.constants';
-import { BoardState, Player } from './game.model';
+import { Board, Player } from './game.model';
 import { CreateRoomRequestParams } from './room.model';
 
 export interface ServerToClientEvents {
@@ -30,7 +30,7 @@ export interface ServerToClientEvents {
   }) => void;
   [GAME_SERVER_TO_CLIENT.START]: (gameStartData: {
     players: Player[];
-    board: BoardState;
+    board: Board;
     currentTurnPlayerId: string;
   }) => void;
 }
