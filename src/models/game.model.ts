@@ -25,3 +25,9 @@ export type Board = [
   'O' | 'X' | '',
   'O' | 'X' | '',
 ];
+
+export interface GameAction {
+  idx: number;
+  player: Player;
+  roomId: string;
+}

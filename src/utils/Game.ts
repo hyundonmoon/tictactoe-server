@@ -1,4 +1,4 @@
-import { Board, GameplayData, Player } from '../models/game.model';
+import { Board, GameAction, GameplayData, Player } from '../models/game.model';
 
 export default class Game {
   isStarted = false;
@@ -86,5 +86,74 @@ export default class Game {
     this.isStarted = true;
     this.currentTurn =
       this.firstPlayerId === this.player1.id ? this.player1 : this.player2;
+  }
+
+  updateGame(action: GameAction) {
+    if (
+      this.board[action.idx] !== '' ||
+      !this.isStarted ||
+      !this.player1 ||
+      !this.player2
+    ) {
+      return;
+    }
+
+    this.board[action.idx] = action.player.symbol;
+    const { winner, isFinished } = this.calcGameResult(
+      this.board,
+      this.player1,
+      this.player2
+    );
+
+    if (isFinished) {
+      this.winner = winner;
+      this.isFinished = isFinished;
+    } else {
+      if (this.currentTurn === this.player1) {
+        this.currentTurn = this.player2;
+      } else {
+        this.currentTurn = this.player1;
+      }
+    }
+  }
+
+  calcGameResult(
+    board: Board,
+    player1: Player,
+    player2: Player
+  ): { winner: Player | null; isFinished: boolean } {
+    const winningCombos = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    let winner: Player | null = null;
+    let isFinished = false;
+
+    for (const combo of winningCombos) {
+      const [a, b, c] = combo;
+
+      if (!board[a] || !board[b] || !board[c]) continue;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        const winningSymbol = board[a];
+        winner = winningSymbol === player1.symbol ? player1 : player2;
+        isFinished = true;
+      }
+    }
+
+    if (!isFinished && board.every((value) => value !== '')) {
+      isFinished = true;
+    }
+
+    return {
+      winner,
+      isFinished,
+    };
   }
 }

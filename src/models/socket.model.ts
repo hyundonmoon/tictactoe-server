@@ -5,7 +5,7 @@ import {
   ROOM_CLIENT_TO_SERVER,
   ROOM_SERVER_TO_CLIENT,
 } from '../constants/socket.constants';
-import { Board, Player } from './game.model';
+import { GameAction, GameplayData, Player } from './game.model';
 import { CreateRoomRequestParams } from './room.model';
 
 export interface ServerToClientEvents {
@@ -28,11 +28,9 @@ export interface ServerToClientEvents {
   }: {
     playerId: string;
   }) => void;
-  [GAME_SERVER_TO_CLIENT.START]: (gameStartData: {
-    players: Player[];
-    board: Board;
-    currentTurnPlayerId: string;
-  }) => void;
+  [GAME_SERVER_TO_CLIENT.START]: (data: GameplayData) => void;
+  [GAME_SERVER_TO_CLIENT.ACTION]: (data: GameplayData) => void;
+  [GAME_SERVER_TO_CLIENT.OVER]: (data: Player | null) => void;
 }
 
 export interface ClientToServerEvents {
@@ -48,6 +46,7 @@ export interface ClientToServerEvents {
     playerId: string,
     playerName: string
   ) => void;
+  [GAME_CLIENT_TO_SERVER.ACTION]: (action: GameAction) => void;
 }
 
 export interface InterServerEvents {}

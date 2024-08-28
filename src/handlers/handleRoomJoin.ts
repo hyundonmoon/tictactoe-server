@@ -2,10 +2,10 @@ import { Socket } from 'socket.io';
 import { REQUIRED_PLAYERS } from '../constants/gameplay.constants';
 import { ROOM_SERVER_TO_CLIENT } from '../constants/socket.constants';
 import {
-  getPendingRoom,
-  deletePendingRoom,
   addActiveRoom,
+  deletePendingRoom,
   getActiveRoom,
+  getPendingRoom,
 } from '../db/rooms';
 
 export default function handleRoomJoin(this: Socket, roomId: string) {

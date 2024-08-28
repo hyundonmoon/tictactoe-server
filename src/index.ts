@@ -1,3 +1,4 @@
+import console from 'console';
 import cors from 'cors';
 import express from 'express';
 import http from 'http';
@@ -6,12 +7,15 @@ import {
   GAME_CLIENT_TO_SERVER,
   ROOM_CLIENT_TO_SERVER,
 } from './constants/socket.constants';
+import { removeUserFromGame } from './db/games';
 import { getActiveRoomsList, removeUserFromRoom } from './db/rooms';
 import handleDisconnect from './handlers/handleDisconnect';
+import handleGameAction from './handlers/handleGameAction';
 import handleGameReady from './handlers/handleGameReady';
 import handleRoomCreate from './handlers/handleRoomCreate';
 import handleRoomJoin from './handlers/handleRoomJoin';
 import handleRoomPasswordJoin from './handlers/handleRoomPasswordJoin';
+import { GameAction } from './models/game.model';
 import {
   ClientToServerEvents,
   InterServerEvents,
@@ -48,15 +52,20 @@ io.on('connection', (socket) => {
   socket.on(ROOM_CLIENT_TO_SERVER.JOIN_PASSWORD, handleRoomPasswordJoin);
 
   socket.on(ROOM_CLIENT_TO_SERVER.LEAVE, (roomId: string) => {
+    removeUserFromGame(roomId, socket.id);
     removeUserFromRoom(io, socket, roomId);
   });
 
   socket.on(
     GAME_CLIENT_TO_SERVER.READY,
     (roomId: string, playerId: string, playerName: string) => {
-      handleGameReady(io, socket, roomId, playerId, playerName);
+      handleGameReady(io, roomId, playerId, playerName);
     }
   );
+
+  socket.on(GAME_CLIENT_TO_SERVER.ACTION, (action: GameAction) => {
+    handleGameAction(io, action);
+  });
 
   socket.on('disconnecting', () => {
     handleDisconnect(io, socket);

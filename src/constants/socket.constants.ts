@@ -22,9 +22,10 @@ export const ROOM_CLIENT_TO_SERVER = {
 export const GAME_SERVER_TO_CLIENT = {
   START: 'GAME::START',
   OVER: 'GAME::OVER',
+  ACTION: 'GAME::ACTION',
 } as const;
 
 export const GAME_CLIENT_TO_SERVER = {
   READY: 'GAME::READY',
-  MAKE_MOVE: 'GAME::MAKE_MOVE',
+  ACTION: 'GAME::ACTION',
 } as const;
