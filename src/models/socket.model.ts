@@ -31,6 +31,7 @@ export interface ServerToClientEvents {
   [GAME_SERVER_TO_CLIENT.START]: (data: GameplayData) => void;
   [GAME_SERVER_TO_CLIENT.ACTION]: (data: GameplayData) => void;
   [GAME_SERVER_TO_CLIENT.OVER]: (data: Player | null) => void;
+  [GAME_SERVER_TO_CLIENT.ABORT]: (data: GameplayData) => void;
 }
 
 export interface ClientToServerEvents {

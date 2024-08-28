@@ -7,6 +7,7 @@ export interface Player {
 export interface GameplayData {
   isStarted: boolean;
   isFinished: boolean;
+  isAborted: boolean;
   isDraw: boolean;
   winner: Player | null;
   board: Board;

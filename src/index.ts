@@ -7,13 +7,13 @@ import {
   GAME_CLIENT_TO_SERVER,
   ROOM_CLIENT_TO_SERVER,
 } from './constants/socket.constants';
-import { removeUserFromGame } from './db/games';
-import { getActiveRoomsList, removeUserFromRoom } from './db/rooms';
+import { getActiveRoomsList } from './db/rooms';
 import handleDisconnect from './handlers/handleDisconnect';
 import handleGameAction from './handlers/handleGameAction';
 import handleGameReady from './handlers/handleGameReady';
 import handleRoomCreate from './handlers/handleRoomCreate';
 import handleRoomJoin from './handlers/handleRoomJoin';
+import handleRoomLeave from './handlers/handleRoomLeave';
 import handleRoomPasswordJoin from './handlers/handleRoomPasswordJoin';
 import { GameAction } from './models/game.model';
 import {
@@ -52,8 +52,7 @@ io.on('connection', (socket) => {
   socket.on(ROOM_CLIENT_TO_SERVER.JOIN_PASSWORD, handleRoomPasswordJoin);
 
   socket.on(ROOM_CLIENT_TO_SERVER.LEAVE, (roomId: string) => {
-    removeUserFromGame(roomId, socket.id);
-    removeUserFromRoom(io, socket, roomId);
+    handleRoomLeave(io, socket, roomId);
   });
 
   socket.on(

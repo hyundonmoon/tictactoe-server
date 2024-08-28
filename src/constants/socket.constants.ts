@@ -23,6 +23,7 @@ export const GAME_SERVER_TO_CLIENT = {
   START: 'GAME::START',
   OVER: 'GAME::OVER',
   ACTION: 'GAME::ACTION',
+  ABORT: 'GAME::ABORT',
 } as const;
 
 export const GAME_CLIENT_TO_SERVER = {

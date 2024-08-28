@@ -2,7 +2,10 @@ import Game from '../utils/Game';
 
 export const ActiveGames = new Map<string, Game>();
 
-export function removeUserFromGame(roomId: string, playerId: string) {
+export function removeUserFromGame(
+  roomId: string,
+  playerId: string
+): Game | undefined {
   const game = ActiveGames.get(roomId);
 
   if (!game) {
@@ -19,4 +22,6 @@ export function removeUserFromGame(roomId: string, playerId: string) {
   }
 
   game.removePlayer(playerId);
+
+  return game;
 }

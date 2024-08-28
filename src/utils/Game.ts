@@ -3,6 +3,7 @@ import { Board, GameAction, GameplayData, Player } from '../models/game.model';
 export default class Game {
   isStarted = false;
   isFinished = false;
+  isAborted = false;
   winner: Player | null = null;
   currentTurn: Player | null;
   firstPlayerId: string;
@@ -33,6 +34,7 @@ export default class Game {
     return {
       isStarted: this.isStarted,
       isFinished: this.isFinished,
+      isAborted: this.isAborted,
       isDraw: this.isFinished && this.winner === null,
       winner: this.winner,
       board: this.board,
@@ -68,13 +70,9 @@ export default class Game {
       removed = true;
     }
 
-    if (removed) {
-      this.isStarted = false;
-      this.isFinished = false;
-      this.winner = null;
-      this.currentTurn = this.player1;
-      this.firstPlayerId = this.player1?.id!;
-      this.board = Array.from({ length: 9 }).fill('') as Board;
+    if (removed && this.isStarted && !this.isFinished) {
+      // removed during a game === aborted
+      this.isAborted = true;
     }
 
     return removed;
