@@ -5,7 +5,7 @@ import {
   ROOM_CLIENT_TO_SERVER,
   ROOM_SERVER_TO_CLIENT,
 } from '../constants/socket.constants';
-import { GameAction, GameplayData, Player } from './game.model';
+import { GameAction, GameOverData, GameplayData } from './game.model';
 import { CreateRoomRequestParams } from './room.model';
 
 export interface ServerToClientEvents {
@@ -28,10 +28,11 @@ export interface ServerToClientEvents {
   }: {
     playerId: string;
   }) => void;
+  [GAME_SERVER_TO_CLIENT.PENDING]: () => void;
   [GAME_SERVER_TO_CLIENT.START]: (data: GameplayData) => void;
   [GAME_SERVER_TO_CLIENT.ACTION]: (data: GameplayData) => void;
-  [GAME_SERVER_TO_CLIENT.OVER]: (data: Player | null) => void;
-  [GAME_SERVER_TO_CLIENT.ABORT]: (data: GameplayData) => void;
+  [GAME_SERVER_TO_CLIENT.OVER]: (data: GameOverData) => void;
+  [GAME_SERVER_TO_CLIENT.ABORT]: () => void;
 }
 
 export interface ClientToServerEvents {
@@ -42,7 +43,12 @@ export interface ClientToServerEvents {
     password: string
   ) => void;
   [ROOM_CLIENT_TO_SERVER.LEAVE]: (roomId: string) => void;
-  [GAME_CLIENT_TO_SERVER.READY]: (
+  [GAME_CLIENT_TO_SERVER.JOIN]: (
+    roomId: string,
+    playerId: string,
+    playerName: string
+  ) => void;
+  [GAME_CLIENT_TO_SERVER.PLAY_AGAIN]: (
     roomId: string,
     playerId: string,
     playerName: string

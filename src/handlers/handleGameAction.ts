@@ -14,6 +14,9 @@ export default function handleGameAction(io: IOServer, action: GameAction) {
   io.to(action.roomId).emit(GAME_SERVER_TO_CLIENT.ACTION, game.gamePlayData);
 
   if (game.isFinished) {
-    io.to(action.roomId).emit(GAME_SERVER_TO_CLIENT.OVER, game.winner);
+    io.to(action.roomId).emit(GAME_SERVER_TO_CLIENT.OVER, {
+      winner: game.winner,
+      isDraw: game.winner === null,
+    });
   }
 }

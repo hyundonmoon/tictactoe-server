@@ -11,7 +11,7 @@ export default function handleDisconnect(io: IOServer, socket: Socket) {
       removeUserFromRoom(io, socket, roomId);
 
       if (game && game.isAborted) {
-        socket.to(roomId).emit(GAME_SERVER_TO_CLIENT.ABORT, game.gamePlayData);
+        socket.to(roomId).emit(GAME_SERVER_TO_CLIENT.ABORT); // emits to room, exluding itself
       }
     });
   }

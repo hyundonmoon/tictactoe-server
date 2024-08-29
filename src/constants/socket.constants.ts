@@ -21,12 +21,15 @@ export const ROOM_CLIENT_TO_SERVER = {
 
 export const GAME_SERVER_TO_CLIENT = {
   START: 'GAME::START',
+  JOINED: 'GAME::JOINED',
   OVER: 'GAME::OVER',
   ACTION: 'GAME::ACTION',
   ABORT: 'GAME::ABORT',
+  PENDING: 'GAME::PENDING',
 } as const;
 
 export const GAME_CLIENT_TO_SERVER = {
-  READY: 'GAME::READY',
+  JOIN: 'GAME::JOIN',
+  PLAY_AGAIN: 'GAME::PLAY_AGAIN',
   ACTION: 'GAME::ACTION',
 } as const;

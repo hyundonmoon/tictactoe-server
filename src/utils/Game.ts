@@ -5,20 +5,19 @@ export default class Game {
   isFinished = false;
   isAborted = false;
   winner: Player | null = null;
-  currentTurn: Player | null;
+  currentTurn: Player | null = null;
   firstPlayerId: string;
   board = Array.from({ length: 9 }).fill('') as Board;
-  player1: Player | null = null;
+  player1!: Player;
   player2: Player | null = null;
 
   constructor(firstPlayerId: string, firstPlayerName: string) {
     this.firstPlayerId = firstPlayerId;
     this.addPlayer(firstPlayerId, firstPlayerName);
-    this.currentTurn = this.player1;
   }
 
   get isPlayable(): boolean {
-    return this.player1 !== null && this.player2 !== null;
+    return !!this.player1?.ready && !!this.player2?.ready;
   }
 
   get players() {
@@ -32,11 +31,6 @@ export default class Game {
 
   get gamePlayData(): GameplayData {
     return {
-      isStarted: this.isStarted,
-      isFinished: this.isFinished,
-      isAborted: this.isAborted,
-      isDraw: this.isFinished && this.winner === null,
-      winner: this.winner,
       board: this.board,
       players: this.players,
       currentTurn: this.currentTurn!,
@@ -47,9 +41,9 @@ export default class Game {
     if (this.isPlayable) return;
 
     if (!this.player1) {
-      this.player1 = { id, name, symbol: 'X' };
+      this.player1 = { id, name, symbol: 'X', ready: true };
     } else {
-      this.player2 = { id, name, symbol: 'O' };
+      this.player2 = { id, name, symbol: 'O', ready: true };
     }
   }
 
@@ -60,11 +54,8 @@ export default class Game {
       if (this.player2) {
         this.player1 = { ...this.player2, symbol: 'X' };
         this.player2 = null;
-      } else {
-        this.player1 = null;
+        removed = true;
       }
-
-      removed = true;
     } else if (id === this.player2?.id) {
       this.player2 = null;
       removed = true;
@@ -75,6 +66,10 @@ export default class Game {
       this.isAborted = true;
     }
 
+    if (removed) {
+      this.firstPlayerId = this.player1.id;
+    }
+
     return removed;
   }
 
@@ -82,6 +77,10 @@ export default class Game {
     if (this.player1 === null || this.player2 === null) return;
 
     this.isStarted = true;
+    this.isFinished = false;
+    this.isAborted = false;
+    this.winner = null;
+    this.board = Array.from({ length: 9 }).fill('') as Board;
     this.currentTurn =
       this.firstPlayerId === this.player1.id ? this.player1 : this.player2;
   }
@@ -106,6 +105,16 @@ export default class Game {
     if (isFinished) {
       this.winner = winner;
       this.isFinished = isFinished;
+
+      // set up for next game
+      if (this.firstPlayerId === this.player1.id) {
+        this.firstPlayerId = this.player2.id;
+      } else {
+        this.firstPlayerId = this.player1.id;
+      }
+
+      this.player1.ready = false;
+      this.player2.ready = false;
     } else {
       if (this.currentTurn === this.player1) {
         this.currentTurn = this.player2;

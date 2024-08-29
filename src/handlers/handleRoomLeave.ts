@@ -13,6 +13,6 @@ export default function handleRoomLeave(
   removeUserFromRoom(io, socket, roomId);
 
   if (game && game.isAborted) {
-    socket.to(roomId).emit(GAME_SERVER_TO_CLIENT.ABORT, game.gamePlayData);
+    socket.to(roomId).emit(GAME_SERVER_TO_CLIENT.ABORT);
   }
 }

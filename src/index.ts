@@ -10,7 +10,8 @@ import {
 import { getActiveRoomsList } from './db/rooms';
 import handleDisconnect from './handlers/handleDisconnect';
 import handleGameAction from './handlers/handleGameAction';
-import handleGameReady from './handlers/handleGameReady';
+import handleGameJoin from './handlers/handleGameJoin';
+import handleGamePlayAgain from './handlers/handleGamePlayAgain';
 import handleRoomCreate from './handlers/handleRoomCreate';
 import handleRoomJoin from './handlers/handleRoomJoin';
 import handleRoomLeave from './handlers/handleRoomLeave';
@@ -56,9 +57,16 @@ io.on('connection', (socket) => {
   });
 
   socket.on(
-    GAME_CLIENT_TO_SERVER.READY,
+    GAME_CLIENT_TO_SERVER.JOIN,
     (roomId: string, playerId: string, playerName: string) => {
-      handleGameReady(io, roomId, playerId, playerName);
+      handleGameJoin(io, socket, roomId, playerId, playerName);
+    }
+  );
+
+  socket.on(
+    GAME_CLIENT_TO_SERVER.PLAY_AGAIN,
+    (roomId: string, playerId: string, playerName: string) => {
+      handleGamePlayAgain(io, socket, roomId, playerId, playerName);
     }
   );
 
