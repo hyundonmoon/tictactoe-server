@@ -39,7 +39,11 @@ const io = new Server<
 
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http:localhost:5173',
+  })
+);
 
 app.get('/rooms', (req, res) => {
   const filter = req.query.filter as 'waiting' | 'all';
