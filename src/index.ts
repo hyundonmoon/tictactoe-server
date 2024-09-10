@@ -53,7 +53,9 @@ app.get('/rooms', (req, res) => {
 
 io.on('connection', (socket) => {
   socket.on(ROOM_CLIENT_TO_SERVER.CREATE, handleRoomCreate);
-  socket.on(ROOM_CLIENT_TO_SERVER.JOIN, handleRoomJoin);
+  socket.on(ROOM_CLIENT_TO_SERVER.JOIN, (roomId: string) => {
+    handleRoomJoin(io, socket, roomId);
+  });
   socket.on(ROOM_CLIENT_TO_SERVER.JOIN_PASSWORD, handleRoomPasswordJoin);
 
   socket.on(ROOM_CLIENT_TO_SERVER.LEAVE, (roomId: string) => {

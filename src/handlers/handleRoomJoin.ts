@@ -7,9 +7,13 @@ import {
   getActiveRoom,
   getPendingRoom,
 } from '../db/rooms';
+import { IOServer } from '../models/socket.model';
 
-export default function handleRoomJoin(this: Socket, roomId: string) {
-  const socket = this;
+export default function handleRoomJoin(
+  io: IOServer,
+  socket: Socket,
+  roomId: string
+) {
   // TODO: I feel like there's room for improvement here
   const pendingRoom = getPendingRoom(roomId);
 
@@ -22,6 +26,12 @@ export default function handleRoomJoin(this: Socket, roomId: string) {
       addActiveRoom(pendingRoom);
       socket.join(roomId);
       socket.emit(ROOM_SERVER_TO_CLIENT.JOINED, { roomId });
+      io.emit(ROOM_SERVER_TO_CLIENT.NEW_ROOM, {
+        id: roomId,
+        name: pendingRoom.name,
+        playerCount: pendingRoom.players.length,
+        hasPassword: !!pendingRoom.password,
+      });
     } else {
       // if a room is pending and the user who asks to join isn't the owner, they shouldn't be able to join
       socket.emit(ROOM_SERVER_TO_CLIENT.NOT_FOUND);
